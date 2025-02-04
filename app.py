@@ -35,5 +35,103 @@ class Reminder(Base):
     __tablename__ = 'reminders'
     id = Column(Integer, primary_key=True, index=True)
     reminder_text = Column(String)
-    importance = Column(String)
-    
+    importance = Column(String) # to be restricted later with an enum
+
+
+class CalendarEvent(Base):
+    __tablename__ = 'calendars'
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(String)
+    event_from = Column(DateTime)
+    event_to = Column(DateTime)
+
+
+Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close
+
+# Base models for pydantic
+class ToolCallFunction(BaseModel):
+    name: str # to know what tool is being called
+    arguments: str | dict
+
+class ToolCall(BaseModel):
+    id: str
+    function: ToolCallFunction
+
+class Message(BaseModel):
+    id: str
+    toolCalls: list[ToolCall]
+
+class VapiRequest(BaseModel):
+    message: Message
+
+
+class TodoResponse(BaseModel):
+    id: int
+    title: str
+    description: Union[str, None]
+    todo_completed: bool
+    created_at: DateTime
+    updated_at: DateTime
+
+    class Config:
+        orm_mode = True
+
+
+class ReminderResponse(BaseModel):
+    id: int
+    title: str
+    reminder_text: str
+    importance: bool
+
+    class Config:
+        orm_mode = True
+
+class CalendarEventResponse(BaseModel):
+    id: str
+    title: str
+    description: Union[str, None]
+    event_from: dt.datetime
+    event_to: dt.datetime
+
+    class Config:
+        orm_mode = True
+
+@app.post('/create_todo/')
+def create_todo(request: VapiRequest, db: Session = Depends(get_db)):
+    for toolcall in request.message.toolCalls:
+        if toolcall.function.name == 'createTodo':
+            args = toolcall.function.arguments
+
+            break
+    else:
+        raise HTTPException(status_code=400, detail='Invalid Request')
+
+    if isinstance(args, str):
+        args = json.loads(args)
+
+        title = args.get('title', '')
+        description = args.get('description', '')
+
+        todo = Todo(title = title, description = description)
+
+        db.add(todo)
+        db.commit()
+        db.refresh(todo) # if it fails/break try without
+
+
+        return {
+            'results': [
+                {
+                    'toolCallId': 'toolcall.id',
+                    'result': 'success'
+                }
+            ]
+        }
