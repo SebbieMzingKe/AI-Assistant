@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Depends
 
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
-from sqlalchemy import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 
 DATABASE_URL = 'sqlite:///./database.db'
@@ -27,8 +27,8 @@ class Todo(Base):
     title = Column(String, index=True)
     description = Column(String, nullable=True)
     todo_completed = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=dt.utcnow)
-    updated_at = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow)
+    # created_at = Column(DateTime, default=dt.utcnow)
+    # updated_at = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow)
 
 
 class Reminder(Base):
@@ -78,8 +78,8 @@ class TodoResponse(BaseModel):
     title: str
     description: Union[str, None]
     todo_completed: bool
-    created_at: DateTime
-    updated_at: DateTime
+    # created_at: DateTime
+    # updated_at: DateTime
 
     class Config:
         orm_mode = True
