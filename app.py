@@ -240,3 +240,5 @@ def delete_todo(request: VapiRequest, db: Session = Depends(get_db)):
                 }
             ]
         }
+
+# vapi implementation
