@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative import declarative_base
 DATABASE_URL = 'sqlite:///./database.db'
 
 engine = create_engine(DATABASE_URL, connect_args={'check_same_thread': False})
-SessionLocal = sessionmaker(autocommit=False, autoFlush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
@@ -130,7 +130,7 @@ def create_todo(request: VapiRequest, db: Session = Depends(get_db)):
         return {
             'results': [
                 {
-                    'toolCallId': 'toolcall.id',
+                    'toolCallId': toolcall.id,
                     'result': 'success'
                 }
             ]
@@ -146,8 +146,8 @@ def get_todos(request: VapiRequest, db: Session = Depends(get_db)):
             return {
                 'results': [
                 {
-                    'toolCallId': 'toolcall.id',
-                    'result': [TodoResponse.from_orm(todo).dict() for todo in todos]
+                    'toolCallId': toolcall.id,
+                    'result': 'success'
                 }
             ]
             }
@@ -192,7 +192,7 @@ def complete_todo(request: VapiRequest, db: Session = Depends(get_db)):
         return {
             'results': [
                 {
-                    'toolCallId': 'toolcall.id',
+                    'toolCallId': toolcall.id,
                     'result': 'success'
                 }
             ]
@@ -202,7 +202,7 @@ def complete_todo(request: VapiRequest, db: Session = Depends(get_db)):
 @app.post('/delete_todo/')
 def delete_todo(request: VapiRequest, db: Session = Depends(get_db)):
     for toolcall in request.message.toolCalls:
-        if toolcall.function.name == 'completeTodo':
+        if toolcall.function.name == 'deleteTodo':
             args = toolcall.function.arguments
 
             break
@@ -235,7 +235,7 @@ def delete_todo(request: VapiRequest, db: Session = Depends(get_db)):
         return {
             'results': [
                 {
-                    'toolCallId': 'toolcall.id',
+                    'toolCallId': toolcall.id,
                     'result': 'success'
                 }
             ]
